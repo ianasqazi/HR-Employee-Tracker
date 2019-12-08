@@ -2,10 +2,10 @@
   "name": "hr-employee-tracker",
   "version": "1.0.0",
   "description": "Track your Employees",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,5 @@
     "inquirer": "^7.0.0",
     "mysql": "^2.17.1"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.1"
-  }
+  "devDependencies": {}
 }
