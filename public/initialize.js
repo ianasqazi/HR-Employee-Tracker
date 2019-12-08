@@ -92,4 +92,35 @@ function viewDepartments() {
         }); 
     }
 
+
+function addRole() {
+    inquirer
+        .prompt([{
+        name: "title",
+        type: "input",
+        message: "What is the Role you want to add ? "
+        },
+        {
+        name: "salary",
+        type: "input",
+        message: "What is the Salary for the role ? "
+        },
+        {
+        name: "department_id",
+        type: "input",
+        message: "What is the Department ID for the role ? "
+        }])
+        .then(function(answers) {
+        var query = "UPDATE TABLE employee SET  WHERE ?";
+        var query = `INSERT INTO role(title, salary, department_id) VALUES(?,?,?)`;
+            
+        connection.query(query, [answers.title, answers.salary, answers.department_id], function(err, res) {
+            if (err) throw err;
+            console.log("1 record inserted");
+            
+            cli();
+        });
+        });
+    }
+
   module.exports = cli;
