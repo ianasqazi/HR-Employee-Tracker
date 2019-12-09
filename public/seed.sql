@@ -48,11 +48,6 @@ INSERT INTO role(title, salary, department_id)
 VALUES ("","","");
 
 ----------------------------
-desc employee;
-
-select * from employee;
-
-select * from role;
 
 
 INSERT INTO employee (first_name,last_name,role_id)
@@ -99,4 +94,22 @@ VALUES ("Merideth", "Delao", "2");
 INSERT INTO employee (first_name,last_name,role_id)
 VALUES ("Kimbra", "Delao", "3");
 
+----------
 
+select * from employee;
+
+select * from role;
+
+select * from department;
+
+select  e.id,first_name,last_name,r.title, r.salary,
+(select concat(e2.first_name,' ',e2.last_name) from employee as e2 where e.manager_id = e2.id) as 'manager',
+d.name from employee as e
+left join role as r on e.role_id = r.id
+left join department as d on r.department_id = d.id;
+
+SELECT e.id, e.first_name, e.last_name, r.title, d.name, r.salary, 
+(select e.manager_id from employee as Manager)
+FROM employee e 
+LEFT JOIN role r ON e.role_id=r.id
+LEFT JOIN department d ON r.department_id = d.id;
