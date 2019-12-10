@@ -8,6 +8,10 @@ var employeeRolesArray = [];
 var employeeManagerArray = [];
 var departmentChoicesArray = [];
 
+var role_id = [];
+var manager_id = [];
+
+
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -72,9 +76,9 @@ function cli() {
 //////////////////////////////////////// VIEW Functions
 
 function viewEmployees() {
-let query = `SELECT e.id AS "ID", e.first_name AS "First Name", e.last_name AS "Last Name", 
-r.title AS "Role", d.name AS "Department", r.salary AS "Salary", 
-(select concat(emp.first_name,' ',emp.last_name) from employee as emp where e.manager_id = emp.id) AS "Manager"
+let query = `SELECT e.id AS "ID", e.first_name AS "FIRST NAME", e.last_name AS "LAST NAME", 
+r.title AS "ROLE", d.name AS "DEPARTMENT", r.salary AS "SALARY", 
+(select concat(emp.first_name,' ',emp.last_name) from employee as emp where e.manager_id = emp.id) AS "MANAGER"
 FROM employee e 
 LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;`;
@@ -87,7 +91,7 @@ connection.query(query, function(err, res) {
 }
 
 function viewDepartments() {
-let query = "SELECT * FROM department;";
+let query = `SELECT id as ID, name as "DEPARTMENT NAME" FROM department;`;
     connection.query(query, function(err, res) {
             if (err) throw err;
             printTable(res);
@@ -96,7 +100,7 @@ let query = "SELECT * FROM department;";
 }
 
 function viewRoles() {
-    let query = "SELECT * FROM role;";
+    let query = "SELECT id AS ID, title as ROLE, salary as SALARY FROM role;";
     connection.query(query, function(err, res) {
           if (err) throw err;
           printTable(res);
@@ -106,7 +110,7 @@ function viewRoles() {
 
 //////////////////////////////////////// ADD Functions
 
-function addEmployee() {
+async function addEmployee() {
     inquirer
         .prompt([{
         name: "first_name",
@@ -119,29 +123,37 @@ function addEmployee() {
         message: "What is the LAST NAME of the Employee ? "
         },
         {
-        name: "role_id",
+        name: "role",
         type: "list",
         message: "What is the ROLE of the Employee ? ",
         choices: employeeRolesArray,
         // filter: function(){ return role_id ; },
         },
         {
-        name: "manager_id",
+        name: "manager",
         type: "list",
         message: "Who is the MANAGER for the new employee ? ",
         choices: employeeManagerArray,
         }])
         .then(function(answers) {
-            console.log(answers);
-        var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)";
-            
-        connection.query(query, [answers.first_name, answers.last_name, answers.role_id, answers.manager_id], function(err, res) {
-            if (err) throw err;
-            console.log("1 record inserted");
-            
-            cli();
-        });
-    });
+                        
+            getRoleID(answers);
+            console.log(role_id);
+        
+            inquirer.then(function(answers){
+                var query = "INSERT INTO employee(first_name, last_name, role_id) VALUES(?,?,?);";
+                    
+                connection.query(query, [answers.first_name, answers.last_name, role_id[0]], function(err, res) {
+                    if (err) throw err;
+                    console.log(res.affectedRows + " record inserted");
+                    
+                    cli();
+                });
+                console.log(answers);
+            })
+        })
+
+        
 }
 
 function addRole() {
@@ -199,16 +211,49 @@ async function employeeManagerList(){
     });
 }
 
-async function departmentList(){
-    connection.query("SELECT id, name FROM department;", function (err, result) {
-        result.forEach(function(row){
-            departmentChoicesArray.push(row.id + " - " + row.name);
-        })
-      if (err) throw err;
-    });
-}
+// async function departmentList(){
+//     connection.query("SELECT id, name FROM department;", function (err, result) {
+//         result.forEach(function(row){
+//             departmentChoicesArray.push(row.id + " - " + row.name);
+//         })
+//       if (err) throw err;
+//     });
+// }
 
 //////////////////////////////////////// Get Opposite  Functions
 
+async function getRoleID(answers){
+                var queryRoleID = "Select id from role where title=?";
+                connection.query(queryRoleID,[answers.role], function(err,res){
+                    if (err) throw err;
+                    res.forEach(function(row){
+                        role_id.push(row.id);
+                    })
+                    if (err) throw err;
+                    // console.log(role_id)
+                    return role_id;
+                });
+            }
+
+
+// async function getManagerID(answers){
+//     var queryManagerID = `select manager_id from employee where title like '%?'`;
+//     connection.query(queryManagerID,[answers.manager], function(err,res){
+//         if (err) throw err;
+//         res.forEach(function(row){
+//             manager_id.push(row.manager_id);
+//         })
+//         console.log(res);
+//         console.log(manager_id);
+//         if (err) throw err;
+//     });
+// }
 
   module.exports = cli;
+
+//   {
+//     first_name: 'qwerqrw',
+//     last_name: 'dsfasafdsfa',
+//     role: 'Treasury Head',
+//     manager: 'Cristina LSM'
+//   }
