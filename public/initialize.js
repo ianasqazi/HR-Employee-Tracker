@@ -26,7 +26,6 @@ connection.connect(function(err) {
       });
 
 
-
 function cli() {
   inquirer.prompt({
     name: "options",
@@ -34,7 +33,7 @@ function cli() {
     message: "Please select ONE of the following FUNCTIONS : ",
     choices: [ "View Employees", "View Departments", "View Roles", new inquirer.Separator(),
      "Add Employee","Add Departments", "Add Role", new inquirer.Separator(),
-     "Update Employee Roles", new inquirer.Separator(),
+     "Update Employee DETAILS", new inquirer.Separator(),
      "Remove Employee", new inquirer.Separator(),
      "CLOSE", new inquirer.Separator()],
   })
@@ -68,15 +67,15 @@ function cli() {
         addRole();
         break;
 
-    case "Update Employee Roles":
-        // updateEmployeeRole();
+    case "Update Employee DETAILS":
+        employeesJSON();
+        rolesJSON();
+        setTimeout(updateEmployeeDetails, 1000);
         break;
 
     case "Remove Employee":
         employeesJSON();
         setTimeout(removeEmployee, 1000);
-
-        // await removeEmployee();
         break;
     
         
@@ -235,16 +234,123 @@ async function removeEmployee() {
         ])
         .then(function(answers) {
             var splitName = answers.empFullName.split(" ");
-            console.log(splitName);
             let query = `DELETE FROM employee WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
             connection.query(query, function(err, res) {
                 if (err) throw err;
                 console.log(res.affectedRows + " record DELETED");
                 cli();
             });
-
         })
 }
+
+//////////////////////////////////////// Get IDs  Functions
+
+async function updateEmployeeDetails(){
+    inquirer
+    .prompt([{
+        name: "empFullName",
+        type: "list",
+        message: "Choose the EMPLOYEE you want to UPDATE ? ",
+        choices: employeeFullName,
+    }
+    ])
+
+    .then(function(answers) {
+        
+        var splitName = answers.empFullName.split(" ");
+
+        if(answers.empFullName === "NONE"){
+            cli();
+        }
+        else{
+
+            inquirer.prompt([
+                {
+                    name: "updateOption",
+                    type: "list",
+                    message: "What do you want to UPDATE for the employee ? ",
+                    choices: ['UPDATE FIRST NAME','UPDATE LAST NAME','UPDATE ROLE','UPDATE MANAGER'],
+                }
+            ])
+
+            .then(function(answers) {
+
+                if(answers.updateOption === "UPDATE FIRST NAME"){
+                    inquirer.prompt({
+                        name: "newFirstName",
+                        message: `What is the NEW FIRST name for employee ? `,
+                        type: "input",
+                    })
+                    .then(function(answers2) {
+                        let query = `UPDATE employee SET first_name='${answers2.newFirstName}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
+                        connection.query(query, function(err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " record UPDATED");
+                            cli();
+                        });
+                    })
+                }
+        
+                if(answers.updateOption === "UPDATE LAST NAME"){
+                    inquirer.prompt({
+                        name: "newLastName",
+                        message: `What is the NEW LAST name for employee ? `,
+                        type: "input",
+                    })
+                    .then(function(answers2) {
+                        let query = `UPDATE employee SET last_name='${answers2.newLastName}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
+                        connection.query(query, function(err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " record UPDATED");
+                            cli();
+                        });
+                    })
+                }
+        
+                if(answers.updateOption === "UPDATE ROLE"){
+                    inquirer.prompt({
+                        name: "newRole",
+                        message: `Choose the NEW ROLE for employee ? `,
+                        type: "list",
+                        choices: employeeRolesNames
+                    })
+                    .then(function(answers2) {
+                        let roleId = getRoleID(answers2.newRole, rolesArray);
+                        let query = `UPDATE employee SET role_id='${roleId}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
+                        connection.query(query, function(err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " record UPDATED");
+                            cli();
+                        });
+                    })
+                }
+        
+                if(answers.updateOption === "UPDATE MANAGER"){
+                    inquirer.prompt({
+                        name: "newManager",
+                        message: `Choose the NEW MANAGER for employee ? `,
+                        type: "list",
+                        choices: employeeFullName
+                    })
+                    .then(function(answers2) {
+                        let manId = getManagerID(answers2.newManager, employeesArray);
+                        let query = `UPDATE employee SET manager_id='${manId}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
+                        connection.query(query, function(err, res) {
+                            if (err) throw err;
+                            console.log(res.affectedRows + " record UPDATED");
+                            cli();
+                        });
+                    })
+        
+                }
+    
+            })
+
+        }
+        
+    })
+}
+
 
 //////////////////////////////////////// get CHOICES Functions
 
@@ -259,6 +365,8 @@ async function rolesJSON(){
 }
 
 async function employeesJSON(){
+    employeeFullName.push("NONE");
+
     connection.query("SELECT id, first_name, last_name FROM employee;", function (err, res) {
         res.forEach(function(row){
             employeesArray.push({id:row.id , first_name:row.first_name, last_name:row.last_name});
@@ -278,6 +386,7 @@ async function departmentsJSON(){
     });
 }
 
+
 //////////////////////////////////////// Get IDs  Functions
 
 function getRoleID(employeeRole, array){
@@ -289,7 +398,7 @@ function getRoleID(employeeRole, array){
 }
 
 function getManagerID(managerName, array){
-    if (managerName === "No Manager"){
+    if (managerName === "NONE"){
         return array.id = null;
       }
     else{
@@ -310,6 +419,7 @@ function getDeptID(departmentName, array){
                 }
             }
 }
+
 
 
 module.exports = cli;
