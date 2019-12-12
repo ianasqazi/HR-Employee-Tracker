@@ -82,17 +82,18 @@ VALUES ("Shaniqua", "Welcher", "6");
 INSERT INTO employee (first_name,last_name,role_id)
 VALUES ("Pearle", "Kerbs", "6");
 INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Pearline", "Deras", "7");
+VALUES ("Pearline", "Deras", "7","1");
 INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Roger", "Lagarde", "8");
+VALUES ("Roger", "Lagarde", "8","3");
 INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Gerda", "Ver", "8");
+VALUES ("Gerda", "Ver", "8","1");
 INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Lynda", "Boggs", "5");
+VALUES ("Lynda", "Boggs", "5","4");
 INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Merideth", "Delao", "2");
-INSERT INTO employee (first_name,last_name,role_id)
-VALUES ("Kimbra", "Delao", "3");
+VALUES ("Merideth", "Delao", "2","1");
+
+INSERT INTO employee (first_name,last_name,role_id,manager_id)
+VALUES ("Kimbra", "Delao", "3","1");
 
 ----------
 
@@ -102,14 +103,10 @@ select * from role;
 
 select * from department;
 
-select  e.id,first_name,last_name,r.title, r.salary,
-(select concat(e2.first_name,' ',e2.last_name) from employee as e2 where e.manager_id = e2.id) as 'manager',
-d.name from employee as e
-left join role as r on e.role_id = r.id
-left join department as d on r.department_id = d.id;
 
-SELECT e.id, e.first_name, e.last_name, r.title, d.name, r.salary, 
-(select e.manager_id from employee as Manager)
+SELECT e.id AS "ID", e.first_name AS "First Name", e.last_name AS "Last Name", 
+r.title AS "Role", d.name AS "Department", r.salary AS "Salary", 
+(select concat(emp.first_name,' ',emp.last_name) from employee as emp where e.manager_id = emp.id) AS "Manager"
 FROM employee e 
 LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;

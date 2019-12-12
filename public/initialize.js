@@ -3,15 +3,11 @@ var mysql = require("mysql");
 
 const { printTable } = require('console-table-printer');
 
-var employeeRolesArray = [];
-
+var employeeRolesNames = [];
 var employeeManagerArray = [];
-var departmentChoicesArray = [];
 
-var role_id = [];
-var manager_id = [];
-
-
+var rolesArray = [];
+var employeesArray = [];
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -52,6 +48,8 @@ function cli() {
         break;
 
     case "Add Employee":
+        rolesJSON();
+        employeesJSON();
         employeeRoleList();
         employeeManagerList();
         addEmployee();
@@ -84,7 +82,6 @@ LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;`;
 connection.query(query, function(err, res) {
         if (err) throw err;
-        console.table(res);
         printTable(res);
         cli();
     }); 
@@ -126,8 +123,7 @@ async function addEmployee() {
         name: "role",
         type: "list",
         message: "What is the ROLE of the Employee ? ",
-        choices: employeeRolesArray,
-        // filter: function(){ return role_id ; },
+        choices: employeeRolesNames,
         },
         {
         name: "manager",
@@ -135,25 +131,16 @@ async function addEmployee() {
         message: "Who is the MANAGER for the new employee ? ",
         choices: employeeManagerArray,
         }])
-        .then(function(answers) {
-                        
-            getRoleID(answers);
-            console.log(role_id);
-        
-            inquirer.then(function(answers){
-                var query = "INSERT INTO employee(first_name, last_name, role_id) VALUES(?,?,?);";
-                    
-                connection.query(query, [answers.first_name, answers.last_name, role_id[0]], function(err, res) {
-                    if (err) throw err;
-                    console.log(res.affectedRows + " record inserted");
-                    
-                    cli();
-                });
-                console.log(answers);
-            })
-        })
+        .then(async function(answers) {
 
+        let roleId = getRoleID(answers.role, rolesArray);
+        let manId = getManagerID(answers.manager, employeesArray);
+
+        await insertEmployee(answers,roleId,manId);
         
+        })
+        
+   
 }
 
 function addRole() {
@@ -185,19 +172,33 @@ function addRole() {
     });
 }
 
-
-
 //////////////////////////////////////// UPDATE CHOICES Functions
 
-
-async function employeeRoleList(){
-        connection.query("SELECT id, title FROM role;", function (err, result) {
-            result.forEach(function(row){
-                // employeeRolesArray.push({id:row.id , title:row.title});
-                employeeRolesArray.push(row.title);
+async function rolesJSON(){
+        connection.query("SELECT id, title FROM role;", function (err, res) {
+            res.forEach(function(row){
+                rolesArray.push({id:row.id , title:row.title});
             })
           if (err) throw err;
         });
+}
+
+async function employeesJSON(){
+    connection.query("SELECT id, first_name FROM employee;", function (err, res) {
+        res.forEach(function(row){
+            employeesArray.push({id:row.id , first_name:row.first_name, last_name:row.last_name});
+        })
+      if (err) throw err;
+    });
+}
+
+async function employeeRoleList(){
+    connection.query("SELECT id, title FROM role;", function (err, res) {
+        res.forEach(function(row){
+            employeeRolesNames.push(row.title);
+        })
+      if (err) throw err;
+    });
 }
 
 async function employeeManagerList(){
@@ -211,49 +212,41 @@ async function employeeManagerList(){
     });
 }
 
-// async function departmentList(){
-//     connection.query("SELECT id, name FROM department;", function (err, result) {
-//         result.forEach(function(row){
-//             departmentChoicesArray.push(row.id + " - " + row.name);
-//         })
-//       if (err) throw err;
-//     });
-// }
+//////////////////////////////////////// Get IDs  Functions
 
-//////////////////////////////////////// Get Opposite  Functions
-
-async function getRoleID(answers){
-                var queryRoleID = "Select id from role where title=?";
-                connection.query(queryRoleID,[answers.role], function(err,res){
-                    if (err) throw err;
-                    res.forEach(function(row){
-                        role_id.push(row.id);
-                    })
-                    if (err) throw err;
-                    // console.log(role_id)
-                    return role_id;
-                });
+function getRoleID(employeeRole, array){
+    for (var i=0; i<array.length; i++) {
+        if (array[i].title === employeeRole) {
+            return array[i].id;
             }
+        }
+}
+
+function getManagerID(managerName, array){
+    if (managerName === "No Manager"){
+        return array.id = null;
+      }
+    else{
+    var splitName = managerName.split(" ");
+        for (var i=0; i<array.length; i++) {
+            if (array[i].first_name === splitName[0]) {
+                return array[i].id;
+                }
+            }
+      } 
+    
+}
+
+//////////////////////////////////////// INSERT  Functions
+
+function insertEmployee(answers,roleId,manId){
+    let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES('${answers.first_name}','${answers.last_name}',${roleId},${manId});`
+    connection.query(query, function(err, res) {
+    if (err) throw err;
+    console.log(res.affectedRows + " record inserted");
+    cli();
+});
+}
 
 
-// async function getManagerID(answers){
-//     var queryManagerID = `select manager_id from employee where title like '%?'`;
-//     connection.query(queryManagerID,[answers.manager], function(err,res){
-//         if (err) throw err;
-//         res.forEach(function(row){
-//             manager_id.push(row.manager_id);
-//         })
-//         console.log(res);
-//         console.log(manager_id);
-//         if (err) throw err;
-//     });
-// }
-
-  module.exports = cli;
-
-//   {
-//     first_name: 'qwerqrw',
-//     last_name: 'dsfasafdsfa',
-//     role: 'Treasury Head',
-//     manager: 'Cristina LSM'
-//   }
+module.exports = cli;
