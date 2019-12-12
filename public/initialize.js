@@ -130,12 +130,28 @@ async function addEmployee() {
         .prompt([{
         name: "first_name",
         type: "input",
-        message: "What is the FIRST NAME of the Employee ? "
+        message: "What is the FIRST NAME of the Employee ? ",
+        validate: function(value){
+            var string = value.match(/^\s*\S+.*/);
+            if (string) {
+              return true;
+            } else {
+              return "Please enter the Employees FIRST NAME ";
+            }
+          }
         },
         {
         name: "last_name",
         type: "input",
-        message: "What is the LAST NAME of the Employee ? "
+        message: "What is the LAST NAME of the Employee ? ",
+        validate: function(value){
+            var string = value.match(/^\s*\S+.*/);
+            if (string) {
+              return true;
+            } else {
+              return "Please enter the Employees LAST NAME ";
+            }
+          }
         },
         {
         name: "role",
@@ -175,7 +191,15 @@ async function addDepartment() {
         .prompt({
         name: "depName",
         type: "input",
-        message: "What is the DEPARTMENT NAME you want to add ? "
+        message: "What is the DEPARTMENT NAME you want to add ? ",
+        validate: function(value){
+            var string = value.match(/^\s*\S+.*/);
+            if (string) {
+              return true;
+            } else {
+              return "Please enter the new DEPARTMENT's Name";
+            }
+          }
         }
         )
         .then(function(answers) {
@@ -194,12 +218,24 @@ async function addRole() {
         .prompt([{
         name: "title",
         type: "input",
-        message: "What is the ROLE NAME you want to add ? "
+        message: "What is the ROLE NAME you want to add ? ",
+        validate: function(value){
+            var string = value.match(/^\s*\S+.*/);
+            if (string) {
+              return true;
+            } else {
+              return "Please enter the new ROLE Name";
+            }
+          }
         },
         {
         name: "salary",
         type: "input",
-        message: "What is the SALARY for the new role ? "
+        message: "What is the SALARY for the new role ? ",
+        validate: function( value ) {
+          var valid = !isNaN(parseFloat(value));
+          return valid || "Please enter the SALARY ";
+        },
         },
         {
         name: "department",
@@ -280,6 +316,14 @@ async function updateEmployeeDetails(){
                         name: "newFirstName",
                         message: `What is the NEW FIRST name for employee ? `,
                         type: "input",
+                        validate: function(value){
+                            var string = value.match(/^\s*\S+.*/);
+                            if (string) {
+                              return true;
+                            } else {
+                              return "Please enter the new FIRST NAME for the employee";
+                            }
+                          }
                     })
                     .then(function(answers2) {
                         let query = `UPDATE employee SET first_name='${answers2.newFirstName}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
@@ -296,6 +340,14 @@ async function updateEmployeeDetails(){
                         name: "newLastName",
                         message: `What is the NEW LAST name for employee ? `,
                         type: "input",
+                        validate: function(value){
+                            var string = value.match(/^\s*\S+.*/);
+                            if (string) {
+                              return true;
+                            } else {
+                              return "Please enter the new LAST NAME";
+                            }
+                          }
                     })
                     .then(function(answers2) {
                         let query = `UPDATE employee SET last_name='${answers2.newLastName}' WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
