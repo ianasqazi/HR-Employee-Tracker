@@ -92,21 +92,15 @@ VALUES ("Lynda", "Boggs", "5","4");
 INSERT INTO employee (first_name,last_name,role_id)
 VALUES ("Merideth", "Delao", "2","1");
 
-INSERT INTO employee (first_name,last_name,role_id,manager_id)
-VALUES ("Kimbra", "Delao", "3","1");
+INSERT INTO employee (first_name,last_name)
+VALUES ("Hello", "World");
 
 ----------
-
-select * from employee;
-
-select * from role;
-
-select * from department;
-
 show processlist;
 
-delete from employee where id>="22";
-delete from role where id>="9";
+select * from employee;
+select * from role;
+select * from department;
 
 SELECT e.id AS "ID", e.first_name AS "First Name", e.last_name AS "Last Name", 
 r.title AS "Role", d.name AS "Department", r.salary AS "Salary", 
@@ -114,5 +108,18 @@ r.title AS "Role", d.name AS "Department", r.salary AS "Salary",
 FROM employee e 
 LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;
+
+CREATE VIEW employee_budget AS
+SELECT d.name AS "Demployee_budgedepartment", 
+r.salary AS "Salary"
+FROM employee e 
+LEFT JOIN role r ON e.role_id=r.id
+LEFT JOIN department d ON r.department_id = d.id;
+
+select * from employee_budget;
+
+select * from employee;
+select * from role;
+select * from department;
 
 

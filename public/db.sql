@@ -29,7 +29,13 @@ CREATE TABLE employee (
   CONSTRAINT fk_manager FOREIGN KEY (role_id) REFERENCES role(id)
 );
 
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+CREATE VIEW employee_budget AS
+SELECT d.name AS "department_name", 
+r.salary AS "salary"
+FROM employee e 
+LEFT JOIN role r ON e.role_id=r.id
+LEFT JOIN department d ON r.department_id = d.id;
 
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
 
 

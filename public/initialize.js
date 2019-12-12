@@ -31,19 +31,32 @@ function cli() {
     name: "options",
     type: "list",
     message: "Please select ONE of the following FUNCTIONS : ",
-    choices: [ "View Employees", "View Departments", "View Roles", new inquirer.Separator(),
+    choices: [ "View ALL Employees", "View Employees by Manager", "View Employees by Roles", new inquirer.Separator(),
+    "View Departments", "View Roles", new inquirer.Separator(),
      "Add Employee","Add Departments", "Add Role", new inquirer.Separator(),
      "Update Employee DETAILS", new inquirer.Separator(),
      "Remove Employee", new inquirer.Separator(),
-     "CLOSE", new inquirer.Separator()],
+     "View Budget", new inquirer.Separator(),
+     "CLOSE APPLICATION", new inquirer.Separator()],
   })
   .then(async function(answers) {
     switch (answers.options) {
 
-    case "View Employees":
+    case "View ALL Employees":
         viewEmployees();
         break;
 
+    case "View Employees by Manager":
+        employeesJSON();
+        setTimeout(viewEmpByManager, 500);
+        break;
+            
+    
+    case "View Employees by Roles":
+        rolesJSON();
+        setTimeout(viewEmpByRoles, 500);
+        break;
+                    
     case "View Departments":
         viewDepartments();
         break;
@@ -70,18 +83,22 @@ function cli() {
     case "Update Employee DETAILS":
         employeesJSON();
         rolesJSON();
-        setTimeout(updateEmployeeDetails, 1000);
+        setTimeout(updateEmployeeDetails, 500);
         break;
 
     case "Remove Employee":
         employeesJSON();
-        setTimeout(removeEmployee, 1000);
+        setTimeout(removeEmployee, 500);
         break;
     
-        
-    case "CLOSE":
+    
+    case "View Budget":
+        viewBudget();
+        break;
+            
+    case "CLOSE APPLICATION":
         connection.end();
-        console.log("BYE");
+        console.log("Have a Nice Day ... !!!");
         process.exit();
         break;
         
@@ -123,6 +140,55 @@ function viewRoles() {
       }); 
   }
 
+function viewEmpByManager() {
+    inquirer.prompt({
+        name: "managerName",
+        type: "list",
+        message: "Choose the Manager you want to see all employees :",
+        choices: employeeFullName
+    })
+
+    .then(async function(answers) {
+        let manId = getManagerID(answers.managerName, employeesArray);
+
+        let query = `SELECT id AS ID, first_name as 'FIRST NAME', last_name as 'LAST NAME' FROM employee WHERE manager_id=${manId};`;
+    connection.query(query, function(err, res) {
+                if (err) throw err;
+                if(res.length === 0){
+                    console.log("No Employees working under him !!!");
+                }
+                else{
+                    printTable(res);
+                }
+            cli();
+        }); 
+    }) 
+}
+
+function viewEmpByRoles() {
+    inquirer.prompt({
+        name: "roleName",
+        type: "list",
+        message: "Choose the ROLE you want to see all employees for:",
+        choices: employeeRolesNames
+    })
+
+    .then(async function(answers) {
+        let roleId = getRoleID(answers.roleName, rolesArray);
+
+        let query = `SELECT id AS ID, first_name as 'FIRST NAME', last_name as 'LAST NAME' FROM employee WHERE role_id=${roleId};`;
+    connection.query(query, function(err, res) {
+                if (err) throw err;
+                if(res.length === 0){
+                    console.log("No Employees working under this ROLE !!!");
+                }
+                else{
+                    printTable(res);
+                }
+            cli();
+        }); 
+    }) 
+}
 //////////////////////////////////////// ADD Functions
 
 async function addEmployee() {
@@ -403,6 +469,19 @@ async function updateEmployeeDetails(){
     })
 }
 
+
+//////////////////////////////////////// View Budget Functions
+
+async function viewBudget(){
+    let query = `select department_name as DEPARTMENT_NAME, sum(salary) as TOTAL_BUDGET from employee_budget
+    group by department_name ;`;
+        connection.query(query, function(err, res) {
+            if (err) throw err;
+            printTable(res);
+            cli();
+        });
+
+}
 
 //////////////////////////////////////// get CHOICES Functions
 
