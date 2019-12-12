@@ -103,6 +103,10 @@ select * from role;
 
 select * from department;
 
+show processlist;
+
+delete from employee where id>="22";
+delete from role where id>="9";
 
 SELECT e.id AS "ID", e.first_name AS "First Name", e.last_name AS "Last Name", 
 r.title AS "Role", d.name AS "Department", r.salary AS "Salary", 
@@ -110,3 +114,5 @@ r.title AS "Role", d.name AS "Department", r.salary AS "Salary",
 FROM employee e 
 LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;
+
+

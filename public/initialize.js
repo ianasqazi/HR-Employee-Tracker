@@ -4,7 +4,7 @@ var mysql = require("mysql");
 const { printTable } = require('console-table-printer');
 
 var employeeRolesNames = [];
-var employeeManagerArray = [];
+var employeeFullName = [];
 var roleDepartment = [];
 
 var rolesArray = [];
@@ -31,14 +31,18 @@ function cli() {
   inquirer.prompt({
     name: "options",
     type: "list",
-    message: "Please select the function : ",
-    choices: [ "View Employees", "View Departments", "View Roles", "Add Employee","Add Departments", "Add Role","Update Employee Roles","CLOSE"],
+    message: "Please select ONE of the following FUNCTIONS : ",
+    choices: [ "View Employees", "View Departments", "View Roles", new inquirer.Separator(),
+     "Add Employee","Add Departments", "Add Role", new inquirer.Separator(),
+     "Update Employee Roles", new inquirer.Separator(),
+     "Remove Employee", new inquirer.Separator(),
+     "CLOSE", new inquirer.Separator()],
   })
-  .then(function(answers) {
+  .then(async function(answers) {
     switch (answers.options) {
 
     case "View Employees":
-            viewEmployees();
+        viewEmployees();
         break;
 
     case "View Departments":
@@ -65,9 +69,17 @@ function cli() {
         break;
 
     case "Update Employee Roles":
-        updateEmployeeRole();
+        // updateEmployeeRole();
         break;
 
+    case "Remove Employee":
+        employeesJSON();
+        setTimeout(removeEmployee, 1000);
+
+        // await removeEmployee();
+        break;
+    
+        
     case "CLOSE":
         connection.end();
         console.log("BYE");
@@ -136,7 +148,7 @@ async function addEmployee() {
         name: "manager",
         type: "list",
         message: "Who is the MANAGER for the new employee ? ",
-        choices: employeeManagerArray,
+        choices: employeeFullName,
         }])
         .then(async function(answers) {
 
@@ -147,7 +159,7 @@ async function addEmployee() {
             let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES('${answers.first_name}','${answers.last_name}',${roleId},${manId});`
             connection.query(query, function(err, res) {
             if (err) throw err;
-            console.log(res.affectedRows + " record inserted");
+            console.log(res.affectedRows + " record INSERTED");
             cli();
         });
         }
@@ -159,7 +171,7 @@ async function addEmployee() {
    
 }
 
-function addDepartment() {
+async function addDepartment() {
     inquirer
         .prompt({
         name: "depName",
@@ -171,16 +183,14 @@ function addDepartment() {
             let query = `INSERT INTO department (name) VALUES('${answers.depName}');`
             connection.query(query, function(err, res) {
                 if (err) throw err;
-                console.log(res.affectedRows + " record inserted");
+                console.log(res.affectedRows + " record INSERTED");
                 cli();
             });
 
         })
-        
-   
 }
 
-function addRole() {
+async function addRole() {
     inquirer
         .prompt([{
         name: "title",
@@ -205,11 +215,35 @@ function addRole() {
             
         connection.query(query, [answers.title, answers.salary], function(err, res) {
             if (err) throw err;
-            console.log(res.affectedRows + " Record Inserted");
+            console.log(res.affectedRows + " Record INSERTED");
     
             cli();
         });
     });
+}
+
+//////////////////////////////////////// REMOVE Functions
+
+async function removeEmployee() {
+    inquirer
+        .prompt([{
+            name: "empFullName",
+            type: "list",
+            message: "Choose the EMPLOYEE you want to REMOVE ? ",
+            choices: employeeFullName
+        }
+        ])
+        .then(function(answers) {
+            var splitName = answers.empFullName.split(" ");
+            console.log(splitName);
+            let query = `DELETE FROM employee WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
+            connection.query(query, function(err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + " record DELETED");
+                cli();
+            });
+
+        })
 }
 
 //////////////////////////////////////// get CHOICES Functions
@@ -228,8 +262,7 @@ async function employeesJSON(){
     connection.query("SELECT id, first_name, last_name FROM employee;", function (err, res) {
         res.forEach(function(row){
             employeesArray.push({id:row.id , first_name:row.first_name, last_name:row.last_name});
-            employeeManagerArray.push(row.first_name + " " + row.last_name);
-
+            employeeFullName.push(row.first_name + " " + row.last_name);
         })
       if (err) throw err;
     });
@@ -277,10 +310,6 @@ function getDeptID(departmentName, array){
                 }
             }
 }
-
-//////////////////////////////////////// INSERT  Functions
-
-
 
 
 module.exports = cli;
