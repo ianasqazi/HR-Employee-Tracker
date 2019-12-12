@@ -5,9 +5,11 @@ const { printTable } = require('console-table-printer');
 
 var employeeRolesNames = [];
 var employeeManagerArray = [];
+var roleDepartment = [];
 
 var rolesArray = [];
 var employeesArray = [];
+var departmentsArray = [];
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -30,7 +32,7 @@ function cli() {
     name: "options",
     type: "list",
     message: "Please select the function : ",
-    choices: [ "View Employees", "View Departments", "View Roles", "Add Employee","Add Departments", "Add Role","Update Employee Roles"],
+    choices: [ "View Employees", "View Departments", "View Roles", "Add Employee","Add Departments", "Add Role","Update Employee Roles","CLOSE"],
   })
   .then(function(answers) {
     switch (answers.options) {
@@ -50,23 +52,28 @@ function cli() {
     case "Add Employee":
         rolesJSON();
         employeesJSON();
-        employeeRoleList();
-        employeeManagerList();
         addEmployee();
         break;
 
-    case "Add Department":
-      addDepartment();
-      break;
+    case "Add Departments":
+        addDepartment();
+        break;
 
     case "Add Role":
-      addRole();
-      break;
+        departmentsJSON();
+        addRole();
+        break;
 
     case "Update Employee Roles":
-    updateEmployeeRole();
-    break;
+        updateEmployeeRole();
+        break;
 
+    case "CLOSE":
+        connection.end();
+        console.log("BYE");
+        process.exit();
+        break;
+        
     }
   });
   }
@@ -135,9 +142,39 @@ async function addEmployee() {
 
         let roleId = getRoleID(answers.role, rolesArray);
         let manId = getManagerID(answers.manager, employeesArray);
-
-        await insertEmployee(answers,roleId,manId);
         
+        function insertEmployee(answers,roleId,manId){
+            let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES('${answers.first_name}','${answers.last_name}',${roleId},${manId});`
+            connection.query(query, function(err, res) {
+            if (err) throw err;
+            console.log(res.affectedRows + " record inserted");
+            cli();
+        });
+        }
+
+        insertEmployee(answers,roleId,manId);
+
+        })
+        
+   
+}
+
+function addDepartment() {
+    inquirer
+        .prompt({
+        name: "depName",
+        type: "input",
+        message: "What is the DEPARTMENT NAME you want to add ? "
+        }
+        )
+        .then(function(answers) {
+            let query = `INSERT INTO department (name) VALUES('${answers.depName}');`
+            connection.query(query, function(err, res) {
+                if (err) throw err;
+                console.log(res.affectedRows + " record inserted");
+                cli();
+            });
+
         })
         
    
@@ -148,22 +185,25 @@ function addRole() {
         .prompt([{
         name: "title",
         type: "input",
-        message: "What is the Role you want to add ? "
+        message: "What is the ROLE NAME you want to add ? "
         },
         {
         name: "salary",
         type: "input",
-        message: "What is the Salary for the role ? "
+        message: "What is the SALARY for the new role ? "
         },
         {
-        name: "department_id",
-        type: "input",
-        message: "What is the Department ID for the role ? "
+        name: "department",
+        type: "list",
+        message: "What is the Department for the role ? ",
+        choices: roleDepartment
         }])
         .then(function(answers) {
-        var query = `INSERT INTO role(title, salary, department_id) VALUES(?,?,?)`;
+
+        let depId = getDeptID(answers.department, departmentsArray);
+        var query = `INSERT INTO role(title, salary, department_id) VALUES(?,?,${depId})`;
             
-        connection.query(query, [answers.title, answers.salary, answers.department_id], function(err, res) {
+        connection.query(query, [answers.title, answers.salary], function(err, res) {
             if (err) throw err;
             console.log(res.affectedRows + " Record Inserted");
     
@@ -172,41 +212,34 @@ function addRole() {
     });
 }
 
-//////////////////////////////////////// UPDATE CHOICES Functions
+//////////////////////////////////////// get CHOICES Functions
 
 async function rolesJSON(){
         connection.query("SELECT id, title FROM role;", function (err, res) {
             res.forEach(function(row){
                 rolesArray.push({id:row.id , title:row.title});
+                employeeRolesNames.push(row.title);
             })
           if (err) throw err;
         });
 }
 
 async function employeesJSON(){
-    connection.query("SELECT id, first_name FROM employee;", function (err, res) {
+    connection.query("SELECT id, first_name, last_name FROM employee;", function (err, res) {
         res.forEach(function(row){
             employeesArray.push({id:row.id , first_name:row.first_name, last_name:row.last_name});
-        })
-      if (err) throw err;
-    });
-}
-
-async function employeeRoleList(){
-    connection.query("SELECT id, title FROM role;", function (err, res) {
-        res.forEach(function(row){
-            employeeRolesNames.push(row.title);
-        })
-      if (err) throw err;
-    });
-}
-
-async function employeeManagerList(){
-    employeeManagerArray.push("No Manager");
-    connection.query("SELECT id, first_name, last_name FROM employee;", function (err, result) {
-        result.forEach(function(row){
-            
             employeeManagerArray.push(row.first_name + " " + row.last_name);
+
+        })
+      if (err) throw err;
+    });
+}
+
+async function departmentsJSON(){
+    connection.query("SELECT id, name FROM department;", function (err, res) {
+        res.forEach(function(row){
+            roleDepartment.push(row.name);
+            departmentsArray.push({id:row.id , name:row.name});
         })
       if (err) throw err;
     });
@@ -237,16 +270,17 @@ function getManagerID(managerName, array){
     
 }
 
+function getDeptID(departmentName, array){
+        for (var i=0; i<array.length; i++) {
+            if (array[i].name === departmentName) {
+                return array[i].id;
+                }
+            }
+}
+
 //////////////////////////////////////// INSERT  Functions
 
-function insertEmployee(answers,roleId,manId){
-    let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES('${answers.first_name}','${answers.last_name}',${roleId},${manId});`
-    connection.query(query, function(err, res) {
-    if (err) throw err;
-    console.log(res.affectedRows + " record inserted");
-    cli();
-});
-}
+
 
 
 module.exports = cli;
