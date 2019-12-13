@@ -1,7 +1,10 @@
+////////////////// Dependencies
+
 const inquirer = require('inquirer');
 var mysql = require("mysql");
-
 const { printTable } = require('console-table-printer');
+
+////////////////// Initialize variables and arrays
 
 var employeeRolesNames = [];
 var employeeFullName = [];
@@ -10,6 +13,8 @@ var roleDepartment = [];
 var rolesArray = [];
 var employeesArray = [];
 var departmentsArray = [];
+
+////////////////// Create Database Connection to MySQL
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -25,6 +30,7 @@ connection.connect(function(err) {
         cli();
       });
 
+////////////////// Prompt OPTIONS / FUNCTIONS to choose
 
 function cli() {
   inquirer.prompt({
@@ -40,6 +46,7 @@ function cli() {
      "CLOSE APPLICATION", new inquirer.Separator()],
   })
   .then(async function(answers) {
+      // Functions to call based on option choosen
     switch (answers.options) {
 
     case "View ALL Employees":
@@ -91,7 +98,6 @@ function cli() {
         setTimeout(removeEmployee, 500);
         break;
     
-    
     case "View Budget":
         viewBudget();
         break;
@@ -101,13 +107,14 @@ function cli() {
         console.log("Have a Nice Day ... !!!");
         process.exit();
         break;
-        
+     
     }
   });
   }
 
 //////////////////////////////////////// VIEW Functions
 
+// Function to view All Employees details : JOIN of all tables to give detail description
 function viewEmployees() {
 let query = `SELECT e.id AS "ID", e.first_name AS "FIRST NAME", e.last_name AS "LAST NAME", 
 r.title AS "ROLE", d.name AS "DEPARTMENT", r.salary AS "SALARY", 
@@ -122,6 +129,7 @@ connection.query(query, function(err, res) {
     }); 
 }
 
+// Function to view All Departments
 function viewDepartments() {
 let query = `SELECT id as ID, name as "DEPARTMENT NAME" FROM department;`;
     connection.query(query, function(err, res) {
@@ -131,6 +139,7 @@ let query = `SELECT id as ID, name as "DEPARTMENT NAME" FROM department;`;
         }); 
 }
 
+// Function to view All Roles
 function viewRoles() {
     let query = "SELECT id AS ID, title as ROLE, salary as SALARY FROM role;";
     connection.query(query, function(err, res) {
@@ -140,6 +149,7 @@ function viewRoles() {
       }); 
   }
 
+// Function to view all Employees working under a Manager
 function viewEmpByManager() {
     inquirer.prompt({
         name: "managerName",
@@ -165,6 +175,7 @@ function viewEmpByManager() {
     }) 
 }
 
+// Function to view all Employees by choosing the Role 
 function viewEmpByRoles() {
     inquirer.prompt({
         name: "roleName",
@@ -191,6 +202,7 @@ function viewEmpByRoles() {
 }
 //////////////////////////////////////// ADD Functions
 
+// Function to add a NEW EMPLOYEE
 async function addEmployee() {
     inquirer
         .prompt([{
@@ -232,10 +244,12 @@ async function addEmployee() {
         choices: employeeFullName,
         }])
         .then(async function(answers) {
-
+            // get id's to insert into the database from the options
+            // Option choosen is STRING ... table accepts only INT
         let roleId = getRoleID(answers.role, rolesArray);
         let manId = getManagerID(answers.manager, employeesArray);
         
+        // Function to insert into the database after getting ids from above
         function insertEmployee(answers,roleId,manId){
             let query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES('${answers.first_name}','${answers.last_name}',${roleId},${manId});`
             connection.query(query, function(err, res) {
@@ -252,6 +266,7 @@ async function addEmployee() {
    
 }
 
+// Function to add a NEW DEPARTMENT
 async function addDepartment() {
     inquirer
         .prompt({
@@ -279,6 +294,7 @@ async function addDepartment() {
         })
 }
 
+// Function to add a NEW ROLE
 async function addRole() {
     inquirer
         .prompt([{
@@ -325,6 +341,7 @@ async function addRole() {
 
 //////////////////////////////////////// REMOVE Functions
 
+// Function to REMOVE an employee 
 async function removeEmployee() {
     inquirer
         .prompt([{
@@ -335,6 +352,7 @@ async function removeEmployee() {
         }
         ])
         .then(function(answers) {
+            // Split the name to give in the where clause as in table its two different columns
             var splitName = answers.empFullName.split(" ");
             let query = `DELETE FROM employee WHERE first_name='${splitName[0]}' and last_name='${splitName[1]}';`
             connection.query(query, function(err, res) {
@@ -347,6 +365,7 @@ async function removeEmployee() {
 
 //////////////////////////////////////// Get IDs  Functions
 
+// Function to UPDATE a specific EMPLOYEE
 async function updateEmployeeDetails(){
     inquirer
     .prompt([{
@@ -358,12 +377,15 @@ async function updateEmployeeDetails(){
     ])
 
     .then(function(answers) {
-        
+        // Split name choosen to match with values in database 
         var splitName = answers.empFullName.split(" ");
 
+        // IF choosen NONE ... do nothing 
         if(answers.empFullName === "NONE"){
             cli();
         }
+
+        // ELSE prompt the options WHAT to update for the employee
         else{
 
             inquirer.prompt([
@@ -376,7 +398,7 @@ async function updateEmployeeDetails(){
             ])
 
             .then(function(answers) {
-
+                // Update FIRST NAME of choosen Employee
                 if(answers.updateOption === "UPDATE FIRST NAME"){
                     inquirer.prompt({
                         name: "newFirstName",
@@ -400,7 +422,7 @@ async function updateEmployeeDetails(){
                         });
                     })
                 }
-        
+                // Update LAST NAME of choosen Employee
                 if(answers.updateOption === "UPDATE LAST NAME"){
                     inquirer.prompt({
                         name: "newLastName",
@@ -424,7 +446,7 @@ async function updateEmployeeDetails(){
                         });
                     })
                 }
-        
+                // Update ROLE of choosen Employee
                 if(answers.updateOption === "UPDATE ROLE"){
                     inquirer.prompt({
                         name: "newRole",
@@ -442,7 +464,7 @@ async function updateEmployeeDetails(){
                         });
                     })
                 }
-        
+                // Update MANAGER of choosen Employee
                 if(answers.updateOption === "UPDATE MANAGER"){
                     inquirer.prompt({
                         name: "newManager",
@@ -472,7 +494,9 @@ async function updateEmployeeDetails(){
 
 //////////////////////////////////////// View Budget Functions
 
+// Function to view total BUDGET of the company grouped by department
 async function viewBudget(){
+    // Bringing updated values from a VIEW created in Database : TOTAL_BUDGET
     let query = `select department_name as DEPARTMENT_NAME, sum(salary) as TOTAL_BUDGET from employee_budget
     group by department_name ;`;
         connection.query(query, function(err, res) {
@@ -485,6 +509,7 @@ async function viewBudget(){
 
 //////////////////////////////////////// get CHOICES Functions
 
+// Function to create a JSON array of all ROLES
 async function rolesJSON(){
         connection.query("SELECT id, title FROM role;", function (err, res) {
             res.forEach(function(row){
@@ -495,6 +520,7 @@ async function rolesJSON(){
         });
 }
 
+// Function to create a JSON array of all EMPLOYEES
 async function employeesJSON(){
     employeeFullName.push("NONE");
 
@@ -507,6 +533,7 @@ async function employeesJSON(){
     });
 }
 
+// Function to create a JSON array of all DEPARTMENTS
 async function departmentsJSON(){
     connection.query("SELECT id, name FROM department;", function (err, res) {
         res.forEach(function(row){
@@ -520,6 +547,7 @@ async function departmentsJSON(){
 
 //////////////////////////////////////// Get IDs  Functions
 
+// Function to get ROLE ID from choosen NAMES
 function getRoleID(employeeRole, array){
     for (var i=0; i<array.length; i++) {
         if (array[i].title === employeeRole) {
@@ -528,6 +556,7 @@ function getRoleID(employeeRole, array){
         }
 }
 
+// Function to get MANAGER ID from choosen NAMES
 function getManagerID(managerName, array){
     if (managerName === "NONE"){
         return array.id = null;
@@ -543,6 +572,7 @@ function getManagerID(managerName, array){
     
 }
 
+// Function to get DEPARTMENT ID from choosen NAMES
 function getDeptID(departmentName, array){
         for (var i=0; i<array.length; i++) {
             if (array[i].name === departmentName) {
@@ -552,5 +582,5 @@ function getDeptID(departmentName, array){
 }
 
 
-
+// EXPORT CLI FUNCTION
 module.exports = cli;
