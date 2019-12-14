@@ -3,9 +3,11 @@ Companies often require an application to manage all employees working in a comp
 
 > AS A Human resources head in a company
 >
-> I WANT to INSERT/UPDATE/DELETE employees , departments or roles in the company
+> I WANT to INSERT/UPDATE/DELETE for employees , departments or roles in the company
 >
 > SO THAT I can maintain all departments and calculate budget etc.
+
+![LOGO](/screenshots/logo_screenshot.png)
 
 The application features the following features : 
 
@@ -29,7 +31,9 @@ Click the link below to check the repository :
 
 ## Preview
 
-![screenrecording_DevProfile](/sample/ScreenRecording_TeamRoaster.gif)
+A working demo can be found at the following Youtube link. 
+
+[Youtube](www.youtube.com)
 
 ## Requirements
 
@@ -69,6 +73,8 @@ If the above hosting site is not working. Kindly run the attached script in the 
 
 1. create_queries.sql
 2. seed.sql
+
+NOTE : Kindly update the connection link in /public/initialize.js file to the correct database.
 
 ## Running the Application
 
