@@ -16,8 +16,6 @@ console.log(
         logoColor: 'bold-red',
         textColor: 'yellow',
     })
-    // .emptyLine()
-    // .center('<<< Employee Tracker >>>')
     .emptyLine()
     .right("@ianasqazi v1.0")
     .render()
