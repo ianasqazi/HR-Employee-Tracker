@@ -36,6 +36,4 @@ FROM employee e
 LEFT JOIN role r ON e.role_id=r.id
 LEFT JOIN department d ON r.department_id = d.id;
 
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
-
 

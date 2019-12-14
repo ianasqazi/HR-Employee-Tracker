@@ -2,6 +2,7 @@
 
 const inquirer = require('inquirer');
 var mysql = require("mysql");
+
 const { printTable } = require('console-table-printer');
 
 ////////////////// Initialize variables and arrays
@@ -16,12 +17,21 @@ var departmentsArray = [];
 
 ////////////////// Create Database Connection to MySQL
 
+// IF you connect to local DB use the following connection code
+// var connection = mysql.createConnection({
+//     host: "localhost",
+//     port: 3306,
+//     user: "root",
+//     password: "",
+//     database: "hr_employees"
+//     });
+
 var connection = mysql.createConnection({
-    host: "localhost",
+    host: "sql9.freemysqlhosting.net",
     port: 3306,
-    user: "root",
-    password: "",
-    database: "hr_employees"
+    user: "sql9315636",
+    password: "39sVdhEjIi",
+    database: "sql9315636"
     });
     
 connection.connect(function(err) {
