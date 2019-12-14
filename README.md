@@ -33,7 +33,7 @@ Click the link below to check the repository :
 
 A working demo can be found at the following Youtube link. 
 
-[Youtube](www.youtube.com)
+[Youtube](https://youtu.be/WIeUFYX6tzw)
 
 ## Requirements
 
@@ -65,7 +65,7 @@ npm --version
 - ASCIIART-LOGO -- Intro Logo Headers
 - CONSOLE-TABLE-PRINTER -- Table formatting in CLI
 
-### Database Packages
+### Database Instance
 
 The database for HR-EMPLOYEE-TRACKER is running on a free hosting website by **[freemysqlhosting.net](freemysqlhosting.net)**.
 
@@ -93,27 +93,3 @@ All packages will be installed and now run the application with the command belo
 ```bash
 node app.js
 ```
-
-
-
-## HTML Output
-
-![screenrecording_TeamRoaster](/sample/ScreenShot_TeamRoaster.png)
-
-
-
-#### Created!
-
-You have successfully created a new database. The details are below.
-
-Username: cYPlyASyS5
-
-Database name: cYPlyASyS5
-
-Password: y85nHpQd7t
-
-Server: remotemysql.com
-
-Port: 3306
-
-These are the username and password to log in to your database and phpMyAdmin
