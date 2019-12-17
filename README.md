@@ -9,6 +9,8 @@ Companies often require an application to manage all employees working in a comp
 
 ![LOGO](/screenshots/logo_screenshot.png)
 
+[![Run on Repl.it](https://repl.it/badge/github/ianasqazi/HR-Employee-Tracker)](https://repl.it/github/ianasqazi/HR-Employee-Tracker)
+
 The application features the following features : 
 
 1. View ALL Employees
